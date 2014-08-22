@@ -85,10 +85,10 @@ public class Filtro {
         CUANDO SE IMPORTAN LOS DATOS DE BIOSTAR SE GENERAN LOS PUNTOS DE PARTIDA
         SIN EMBARGO ESTO ESTA SUPEDITADO A QUE HAYA EXISTIDO ANTES UN REGISTRO ANTERIOR
         PARA CASOS EN LOS CUALES NO EXISTA UN ANALISIS ANTERIOR O (MEJOR DICHO) DESDE CERO
-        SE PONENE LOS PUNTOS DE PARTIDA DESDE DONDE SE DEJO 
+        SE PONEN LOS PUNTOS DE PARTIDA DESDE LA FECHA Y HORA MAS ANTIGUA DE LA VISTA 
         */
         if(fechaPartida == null || horaPartida == null){
-            
+            this.crearPuntosDePartida();
         }
         this.turnosXEmpleado("18033904", 8, 2014);
         this.permisosXEmpleado("46557081", 9, 2014);
@@ -241,5 +241,14 @@ public class Filtro {
         Calendar calendar = Calendar.getInstance();
         calendar.set(anio, mes - 1 , 1);
         return calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+    }
+
+    private void crearPuntosDePartida() {
+        String jpql = "SELECT v FROM Vista v ORDER BY v.id ASC";
+        
+        Vista v = vistaDAO.buscar(jpql, null, -1, 1).get(0);
+        
+        fechaPartida = v.getFecha();
+        horaPartida = v.getHora();
     }
 }
