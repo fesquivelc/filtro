@@ -8,12 +8,15 @@ package com.pruebas.algoritmo;
 import com.pruebas.dao.DAO;
 import com.pruebas.entidades.Empleado;
 import com.pruebas.entidades.EmpleadoHorario;
+import com.pruebas.entidades.Falta;
 import com.pruebas.entidades.Feriado;
 import com.pruebas.entidades.HorarioJornada;
 import com.pruebas.entidades.Jornada;
 import com.pruebas.entidades.Permiso;
 import com.pruebas.entidades.PermisoEmpleado;
+import com.pruebas.entidades.Registro;
 import com.pruebas.entidades.TCImportacion;
+import com.pruebas.entidades.Tardanza;
 import com.pruebas.entidades.Vista;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -37,9 +40,9 @@ import java.util.logging.Logger;
  *
  * @author RyuujiMD
  */
-public class Filtro {
+public class CalculoAsistencia {
 
-    private static final Logger Log = Logger.getLogger(Filtro.class.getName());
+    private static final Logger Log = Logger.getLogger(CalculoAsistencia.class.getName());
 
     int toleranciaMAX = 5; //minutos hasta los cuales se puede marcar sin que sea computado como tardanza 
     int tardanzaMAX = 10; //minutos de tolerancia para que sea considerado como falta
@@ -48,10 +51,21 @@ public class Filtro {
     Date fechaPartida;
     Date horaPartida;
     
+    Date fechaLlegada;
+    Date horaLlegada;
     
-    List<Empleado> empleados;
+    int mesCursor;
+    int anioCursor;
+    int diaCursor;
+    
+    
+//    List<Empleado> empleados;
     List<Feriado> feriados;
     Connection connSQLServer;
+    
+    List<Registro> registroMensual;
+    List<Falta> faltasMensuales;
+    List<Tardanza> tardanzasMensuales;
     
     //TODOS LOS DAO
     DAO<Empleado> empleadoDAO = new DAO<>(Empleado.class);
@@ -70,12 +84,12 @@ public class Filtro {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Filtro.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CalculoAsistencia.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             connSQLServer = DriverManager.getConnection(url, user, password);
         } catch (SQLException ex) {
-            Logger.getLogger(Filtro.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CalculoAsistencia.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -90,12 +104,19 @@ public class Filtro {
         if(fechaPartida == null || horaPartida == null){
             this.crearPuntosDePartida();
         }
-        this.turnosXEmpleado("18033904", 8, 2014);
-        this.permisosXEmpleado("46557081", 9, 2014);
+        
+        List<Empleado> empleados = empleadoDAO.buscarTodos();
+        
+        for(Empleado e : empleados){
+            this.analisisEmpleado(e.getDni());
+        }
+        
+//        this.turnosXEmpleado("18033904", 8, 2014);
+//        this.permisosXEmpleado("46557081", 9, 2014);
     }
 
     private void crearEspejo() {
-        List<TCImportacion> importaciones = tcDAO.buscar("SELECT t FROM TCImportacion t ORDER BY t.id DESC", null, 0, 1);
+        List<TCImportacion> importaciones = tcDAO.buscar("SELECT t FROM TCImportacion t ORDER BY t.id DESC", null, -1, 1);
         if (importaciones.isEmpty()) {
             this.cargaMasiva();
         } else {
@@ -108,6 +129,12 @@ public class Filtro {
         TCImportacion tc = new TCImportacion();
         tc.setFecha(new Date());
         tc.setHora(new Date());
+        /*
+        SE CREAN LOS PUNTOS EN LOS CUALES TERMINARA EL ANALISIS MES A MES
+        */
+        fechaLlegada = tc.getFecha();
+        horaLlegada = tc.getHora();
+        
         tcDAO.guardar(tc);
     }
 
@@ -141,8 +168,7 @@ public class Filtro {
         this.cargaMasiva(null, null);
     }
 
-    private void analizarXMes(String dni, String mes) {
-
+    private void analizarXMes(String dni, String mes) {        
     }
 
     private void cargaMasiva(Date fecha, Date hora) {
@@ -179,7 +205,7 @@ public class Filtro {
             vistaDAO.guardarLote(vistas);
 
         } catch (SQLException ex) {
-            Logger.getLogger(Filtro.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CalculoAsistencia.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
                 if (this.connSQLServer != null) {
@@ -187,7 +213,7 @@ public class Filtro {
                 }
 
             } catch (SQLException ex) {
-                Logger.getLogger(Filtro.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(CalculoAsistencia.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -229,12 +255,12 @@ public class Filtro {
     }
     
     //LOS FERIADOS SOLO CAMBIAN CUANDO EL ANALISIS HA CAMBIADO DE AÑO
-    private List<Feriado> feriadosXAnio(int anio){
+    private void cargarFeriados(int anio){
         String jpql = "SELECT f FROM Feriado f WHERE f.anio = :anio";
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("anio", anio+"");
         
-        return feriadoDAO.buscar(jpql, parametros);
+        this.feriados = feriadoDAO.buscar(jpql, parametros);
     }
 
     private int ultimoDiaMes(int mes, int anio) {
@@ -254,5 +280,24 @@ public class Filtro {
         
         fechaPartida = v.getFecha();
         horaPartida = v.getHora();
+    }
+    
+    private List<Vista> vistaXEmpleado(String dni, int mes, int anio){
+        int primero = 1;
+        int ultimo = this.ultimoDiaMes(mes,anio);
+        
+        String fechaI = "{d '"+anio+"-"+mes+"-"+primero+"'}";
+        String fechaF = "{d '"+anio+"-"+mes+"-"+ultimo+"'}";
+        
+        String jpql = "SELECT v FROM Vista v WHERE v.dni = :dni AND v.fecha BETWEEN " + fechaI + " AND " + fechaF;
+        
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("dni", dni);
+        
+        return this.vistaDAO.buscar(jpql, parametros);
+    }
+
+    private void analisisEmpleado(String dni) {
+        
     }
 }

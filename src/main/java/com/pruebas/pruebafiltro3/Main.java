@@ -6,7 +6,7 @@
 
 package com.pruebas.pruebafiltro3;
 
-import com.pruebas.algoritmo.Filtro;
+import com.pruebas.algoritmo.CalculoAsistencia;
 import com.pruebas.dao.DAO;
 import com.pruebas.entidades.Permiso;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public class Main {
 //        mapa.put("finicio", "2014-08-01");
 ////        permisos.buscar(jpql, mapa);
 //        System.out.println("TAMANO: "+permisos.buscar(jpql).size());
-        Filtro filtro = new Filtro();        
+        CalculoAsistencia filtro = new CalculoAsistencia();        
         filtro.realizarAnalisis();
     }
 }

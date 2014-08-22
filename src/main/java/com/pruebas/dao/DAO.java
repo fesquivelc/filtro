@@ -62,7 +62,7 @@ public class DAO<T> {
     public void eliminar(T objeto) {
         getEntityManager().getTransaction().begin();
         getEntityManager().remove(objeto);
-        getEntityManager().getTransaction().commit();
+        getEntityManager().getTransaction().commit();        
     }
     
     public List<T> buscar(String queryJPQL){
