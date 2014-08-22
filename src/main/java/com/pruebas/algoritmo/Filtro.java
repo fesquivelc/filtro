@@ -246,6 +246,10 @@ public class Filtro {
     private void crearPuntosDePartida() {
         String jpql = "SELECT v FROM Vista v ORDER BY v.id ASC";
         
+        /*
+        NO HAY QUE PEDIR MAS DE UN ELEMENTO A LA CONSULTA 
+        EN CASO CONTRARIO SE HACE DEMASIADO LENTO
+        */
         Vista v = vistaDAO.buscar(jpql, null, -1, 1).get(0);
         
         fechaPartida = v.getFecha();
