@@ -9,8 +9,11 @@ package com.pruebas.pruebafiltro3;
 import com.pruebas.algoritmo.CalculoAsistencia;
 import com.pruebas.dao.DAO;
 import com.pruebas.entidades.Permiso;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -18,13 +21,20 @@ import java.util.Map;
  */
 public class Main {
     public static void main(String[] args) {
-//        DAO<Permiso> permisos = new DAO<>(Permiso.class);
-//        String jpql = "SELECT p FROM Permiso p WHERE p.fecha BETWEEN {d '2014-08-01'} AND {d '2014-08-31'}";
-//        Map<String, Object> mapa = new HashMap<>();
-//        mapa.put("finicio", "2014-08-01");
-////        permisos.buscar(jpql, mapa);
-//        System.out.println("TAMANO: "+permisos.buscar(jpql).size());
         CalculoAsistencia filtro = new CalculoAsistencia();        
-        filtro.realizarAnalisis();
+//        filtro.realizarAnalisis();
+//        filtro.cargarFeriados(2014);
+//        
+//        if(filtro.isFeriado(4, 8)){
+//            LOG.info("ES FERIADO");
+//        }else{
+//            LOG.info("NO ES FERIADO");
+//        }
+        Calendar cal = Calendar.getInstance();
+        cal.set(2014, 7, 31);
+        
+        int diaSemana = cal.get(Calendar.DAY_OF_WEEK);
+        LOG.log(Level.INFO, "DIA DE LA SEMANA {0}",diaSemana);
     }
+    private static final Logger LOG = Logger.getLogger(Main.class.getName());
 }
