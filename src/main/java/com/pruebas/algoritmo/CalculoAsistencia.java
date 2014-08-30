@@ -394,15 +394,25 @@ public class CalculoAsistencia {
                 //EN CASO DE HABER ASISTIDO SE MARCA COMO ASISTENCIA EN ONOMASTICO
                 //EN CASO DE NO HABER ASISTIDO SE GUARDA UN PERMISO
                 //EN CASO DE QUE EL ONOMASTICO SEA EN UNA FECHA NO LABORABLE SE BUSCA LA FALTA EN CUALQUIERA DE LOS DIAS PROXIMOS
-                //SE DEBE ANALIZAR SI TIENE AUTORIZACION PARA ASISTIR EN CUMPLEAÑOS
-                if (!isDiaLaborable(turnos, dia, mes, anio)) {
-                    
+                //SE DEBE ANALIZAR SI TIENE AUTORIZACION PARA ASISTIR EN CUMPLEAÑOS                
+                //PARA EMPLEADOS CON MAS DE UN AÑO
+                if (isDiaLaborable(turnos, dia, mes, anio)) {
+                    //GENERAR UN PERMISO AUTOMATICAMENTE
+                } else {
+                    //BUSCAR EL SIGUIENTE DIA LABORAL PARA DARLE EL PERMISO
+
                 }
             } else if (isEstaEnPermisoXFecha(permisos, dia, mes)) {
                 //EN ESTE CASO NO SE HACE NADA SIMPLEMENTE SE DEJA PASAR
                 //ESTO ES PARA EVITAR TOMAR COMO FALTAS LOS CASOS EN LOS QUE EL ALGORITMO                
-            } else {
+            } else if (isDiaLaborable(turnos, dia, mes, anio)) {
                 //AQUI SE ENCUENTRA EL QUID DEL ASUNTO
+                List<Vista> registroDiario;
+                if(isDiaPartida(dia,mes,anio)){
+                    registroDiario = registrosXDia(dia,mes,anio,registros,horaPartida);
+                }else{
+                    registroDiario = registrosXDia(dia,mes,anio,registros);
+                }
             }
         }
     }
@@ -431,7 +441,6 @@ public class CalculoAsistencia {
         Calendar cal = Calendar.getInstance();
         for (CambioTurno ct : listaCambioTurno) {
             cal.setTime(ct.getHorarioJornada1Id().getFecha());
-
             int diaCT1 = cal.get(Calendar.DAY_OF_MONTH);
             if (dia == diaCT1) {
                 return true;
@@ -449,7 +458,8 @@ public class CalculoAsistencia {
 
         String jpql = "SELECT ct FROM CambioTurno ct WHERE (ct.empleado1Id.dni = :dni OR ct.empleado2Id.dni = :dni) "
                 + " AND ((ct.horarioJornada1Id.fecha BETWEEN " + fechaI + " AND " + fechaF + " ) "
-                + " OR (ct.horarioJornada2Id.fecha BETWEEN " + fechaI + " AND " + fechaF + " ))";
+                + " OR (ct.horarioJornada2Id.fecha BETWEEN " + fechaI + " AND " + fechaF + " )) "
+                + " ORDER BY ct.horarioJornada1Id.fecha, ct.horarioJornada2Id.fecha ASC ";
 
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("dni", dni);
@@ -459,9 +469,6 @@ public class CalculoAsistencia {
     }
 
     private boolean isOnomastico(Empleado empleado, int dia, int mes) {
-        if (dia < 1) {
-            return false;
-        }
         Calendar cal = Calendar.getInstance();
         cal.setTime(empleado.getFechaNacimiento());
 
@@ -503,12 +510,14 @@ public class CalculoAsistencia {
 
         for (HorarioJornada turno : turnos) {
             int diaLaboral;
+
             if (turno.getHorario().getPorFecha()) {
                 cal.setTime(turno.getFecha());
                 diaLaboral = cal.get(Calendar.DAY_OF_WEEK);
             } else {
                 diaLaboral = getDiaLaboralAdministrativo(turno.getHorario());
             }
+
             if (diaSemana == diaLaboral) {
                 return true;
             }
@@ -532,6 +541,49 @@ public class CalculoAsistencia {
         } else {
             return 7;
         }
+    }
+
+    private boolean isDiaPartida(int dia, int mes, int anio) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(fechaPartida);
+        
+        int diaPartida = cal.get(Calendar.DAY_OF_MONTH);
+        int mesPartida = cal.get(Calendar.MONTH);
+        int anioPartida = cal.get(Calendar.YEAR);
+        
+        if(dia == diaPartida && mes == mesPartida && anio == anioPartida){
+            return true;
+        }
+        return false;
+    }
+
+    private List<Vista> registrosXDia(int dia, int mes, int anio, List<Vista> registrosXMes) {
+        return this.registrosXDia(dia, mes, anio, registrosXMes, null, null);
+    }
+
+    private List<Vista> registrosXDia(int dia, int mes, int anio, List<Vista> registrosXMes, Date horaPartida) {
+        return this.registrosXDia(dia, mes, anio, registrosXMes, horaPartida, null);
+    }
+    
+    private List<Vista> registrosXDia(int dia, int mes, int anio, List<Vista> registrosXMes, Date horaPartida, Date horaFin){
+        Calendar cal = Calendar.getInstance();
+        if(horaPartida == null){
+            cal.set(anio, mes, dia, 0, 0);
+            horaPartida = cal.getTime();
+        }
+        if(horaFin == null){
+            cal.set(anio, mes, dia, 11, 59, 59);
+            horaFin = cal.getTime();
+        }
+        cal.set(anio, mes, dia);
+        Date fechaActual = cal.getTime();
+        
+        for(Vista registro : registrosXMes){
+            if(registro.equals(fechaActual) && registro.getHora().after(horaPartida) && registro.getHora().before(horaFin)){
+                
+            }
+        }        
+        
     }
 
 }
