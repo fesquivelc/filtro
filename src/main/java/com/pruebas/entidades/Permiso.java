@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author RyuujiMD
+ * @author fesquivelc
  */
 @Entity
 @XmlRootElement
@@ -34,7 +34,12 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Permiso.findAll", query = "SELECT p FROM Permiso p"),
     @NamedQuery(name = "Permiso.findById", query = "SELECT p FROM Permiso p WHERE p.id = :id"),
     @NamedQuery(name = "Permiso.findByMotivo", query = "SELECT p FROM Permiso p WHERE p.motivo = :motivo"),
-    @NamedQuery(name = "Permiso.findByFecha", query = "SELECT p FROM Permiso p WHERE p.fecha = :fecha")})
+    @NamedQuery(name = "Permiso.findByFecha", query = "SELECT p FROM Permiso p WHERE p.fecha = :fecha"),
+    @NamedQuery(name = "Permiso.findByHEntrada", query = "SELECT p FROM Permiso p WHERE p.hEntrada = :hEntrada"),
+    @NamedQuery(name = "Permiso.findByHSalida", query = "SELECT p FROM Permiso p WHERE p.hSalida = :hSalida"),
+    @NamedQuery(name = "Permiso.findByPorFecha", query = "SELECT p FROM Permiso p WHERE p.porFecha = :porFecha"),
+    @NamedQuery(name = "Permiso.findByFEntrada", query = "SELECT p FROM Permiso p WHERE p.fEntrada = :fEntrada"),
+    @NamedQuery(name = "Permiso.findByFSalida", query = "SELECT p FROM Permiso p WHERE p.fSalida = :fSalida")})
 public class Permiso implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
@@ -46,49 +51,20 @@ public class Permiso implements Serializable {
     @Basic(optional = false)
     @Temporal(TemporalType.DATE)
     private Date fecha;
-    @Column(name = "por_fecha")
-    private boolean porFecha;
-    @Basic(optional = false)
-    @Temporal(TemporalType.TIME)
     @Column(name = "h_entrada")
-    private Date hEntrada;
-    
-    @Basic(optional = false)
     @Temporal(TemporalType.TIME)
+    private Date hEntrada;
     @Column(name = "h_salida")
+    @Temporal(TemporalType.TIME)
     private Date hSalida;
-    
-    @Temporal(TemporalType.DATE)
+    @Column(name = "por_fecha")
+    private Boolean porFecha;
     @Column(name = "f_entrada")
-    private Date fEntrada;
     @Temporal(TemporalType.DATE)
+    private Date fEntrada;
     @Column(name = "f_salida")
+    @Temporal(TemporalType.DATE)
     private Date fSalida;
-
-    public boolean isPorFecha() {
-        return porFecha;
-    }
-
-    public void setPorFecha(boolean porFecha) {
-        this.porFecha = porFecha;
-    }
-
-    public Date getfEntrada() {
-        return fEntrada;
-    }
-
-    public void setfEntrada(Date fEntrada) {
-        this.fEntrada = fEntrada;
-    }
-
-    public Date getfSalida() {
-        return fSalida;
-    }
-
-    public void setfSalida(Date fSalida) {
-        this.fSalida = fSalida;
-    }
-    
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "permiso")
     private List<PermisoEmpleado> permisoEmpleadoList;
 
@@ -99,12 +75,10 @@ public class Permiso implements Serializable {
         this.id = id;
     }
 
-    public Permiso(Integer id, String motivo, Date fecha, Date entrada, Date salida) {
+    public Permiso(Integer id, String motivo, Date fecha) {
         this.id = id;
         this.motivo = motivo;
         this.fecha = fecha;
-        this.hEntrada = entrada;
-        this.hSalida = salida;
     }
 
     public Integer getId() {
@@ -131,20 +105,44 @@ public class Permiso implements Serializable {
         this.fecha = fecha;
     }
 
-    public Date gethEntrada() {
+    public Date getHEntrada() {
         return hEntrada;
     }
 
-    public void sethEntrada(Date hEntrada) {
+    public void setHEntrada(Date hEntrada) {
         this.hEntrada = hEntrada;
     }
 
-    public Date gethSalida() {
+    public Date getHSalida() {
         return hSalida;
     }
 
-    public void sethSalida(Date hSalida) {
+    public void setHSalida(Date hSalida) {
         this.hSalida = hSalida;
+    }
+
+    public Boolean getPorFecha() {
+        return porFecha;
+    }
+
+    public void setPorFecha(Boolean porFecha) {
+        this.porFecha = porFecha;
+    }
+
+    public Date getFEntrada() {
+        return fEntrada;
+    }
+
+    public void setFEntrada(Date fEntrada) {
+        this.fEntrada = fEntrada;
+    }
+
+    public Date getFSalida() {
+        return fSalida;
+    }
+
+    public void setFSalida(Date fSalida) {
+        this.fSalida = fSalida;
     }
 
     @XmlTransient

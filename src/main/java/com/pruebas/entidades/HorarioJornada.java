@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author RyuujiMD
+ * @author fesquivelc
  */
 @Entity
 @Table(name = "horario_jornada")
@@ -44,22 +44,22 @@ public class HorarioJornada implements Serializable {
     private Integer id;
     @Temporal(TemporalType.DATE)
     private Date fecha;
-    @JoinColumn(name = "horario", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Horario horario;
-    @JoinColumn(name = "jornada", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Jornada jornada;
+    @OneToMany(mappedBy = "turnoId")
+    private List<Tardanza> tardanzaList;
     @OneToMany(mappedBy = "turno")
     private List<Registro> registroList;
     @OneToMany(mappedBy = "turnoId")
-    private List<Tardanza> tardanzaList;
-    @OneToMany(mappedBy = "turnoId")
     private List<Falta> faltaList;
-    @OneToMany(mappedBy = "horarioJornada1Id")
-    private List<CambioTurno> cambioTurnoList;
     @OneToMany(mappedBy = "horarioJornada2Id")
+    private List<CambioTurno> cambioTurnoList;
+    @OneToMany(mappedBy = "horarioJornada1Id")
     private List<CambioTurno> cambioTurnoList1;
+    @JoinColumn(name = "jornada", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Jornada jornada;
+    @JoinColumn(name = "horario", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Horario horario;
 
     public HorarioJornada() {
     }
@@ -84,20 +84,13 @@ public class HorarioJornada implements Serializable {
         this.fecha = fecha;
     }
 
-    public Horario getHorario() {
-        return horario;
+    @XmlTransient
+    public List<Tardanza> getTardanzaList() {
+        return tardanzaList;
     }
 
-    public void setHorario(Horario horario) {
-        this.horario = horario;
-    }
-
-    public Jornada getJornada() {
-        return jornada;
-    }
-
-    public void setJornada(Jornada jornada) {
-        this.jornada = jornada;
+    public void setTardanzaList(List<Tardanza> tardanzaList) {
+        this.tardanzaList = tardanzaList;
     }
 
     @XmlTransient
@@ -107,15 +100,6 @@ public class HorarioJornada implements Serializable {
 
     public void setRegistroList(List<Registro> registroList) {
         this.registroList = registroList;
-    }
-
-    @XmlTransient
-    public List<Tardanza> getTardanzaList() {
-        return tardanzaList;
-    }
-
-    public void setTardanzaList(List<Tardanza> tardanzaList) {
-        this.tardanzaList = tardanzaList;
     }
 
     @XmlTransient
@@ -143,6 +127,22 @@ public class HorarioJornada implements Serializable {
 
     public void setCambioTurnoList1(List<CambioTurno> cambioTurnoList1) {
         this.cambioTurnoList1 = cambioTurnoList1;
+    }
+
+    public Jornada getJornada() {
+        return jornada;
+    }
+
+    public void setJornada(Jornada jornada) {
+        this.jornada = jornada;
+    }
+
+    public Horario getHorario() {
+        return horario;
+    }
+
+    public void setHorario(Horario horario) {
+        this.horario = horario;
     }
 
     @Override

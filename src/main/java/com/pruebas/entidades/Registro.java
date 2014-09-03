@@ -7,6 +7,7 @@
 package com.pruebas.entidades;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -24,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author RyuujiMD
+ * @author fesquivelc
  */
 @Entity
 @XmlRootElement
@@ -37,7 +38,8 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Registro.findByEmpleadoId", query = "SELECT r FROM Registro r WHERE r.empleadoId = :empleadoId"),
     @NamedQuery(name = "Registro.findByPermiso", query = "SELECT r FROM Registro r WHERE r.permiso = :permiso"),
     @NamedQuery(name = "Registro.findByEOS", query = "SELECT r FROM Registro r WHERE r.eOS = :eOS"),
-    @NamedQuery(name = "Registro.findByBandera", query = "SELECT r FROM Registro r WHERE r.bandera = :bandera")})
+    @NamedQuery(name = "Registro.findByTipo", query = "SELECT r FROM Registro r WHERE r.tipo = :tipo"),
+    @NamedQuery(name = "Registro.findByMinutosTardanza", query = "SELECT r FROM Registro r WHERE r.minutosTardanza = :minutosTardanza")})
 public class Registro implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
@@ -60,10 +62,16 @@ public class Registro implements Serializable {
     private boolean permiso;
     @Column(name = "e_o_s")
     private Boolean eOS;
-    private String bandera;
+    private String tipo;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Column(name = "minutos_tardanza")
+    private BigDecimal minutosTardanza;
     @JoinColumn(name = "turno", referencedColumnName = "id")
     @ManyToOne
     private HorarioJornada turno;
+    @JoinColumn(name = "cambio_turno_id", referencedColumnName = "id")
+    @ManyToOne
+    private CambioTurno cambioTurnoId;
 
     public Registro() {
     }
@@ -137,12 +145,20 @@ public class Registro implements Serializable {
         this.eOS = eOS;
     }
 
-    public String getBandera() {
-        return bandera;
+    public String getTipo() {
+        return tipo;
     }
 
-    public void setBandera(String bandera) {
-        this.bandera = bandera;
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public BigDecimal getMinutosTardanza() {
+        return minutosTardanza;
+    }
+
+    public void setMinutosTardanza(BigDecimal minutosTardanza) {
+        this.minutosTardanza = minutosTardanza;
     }
 
     public HorarioJornada getTurno() {
@@ -151,6 +167,14 @@ public class Registro implements Serializable {
 
     public void setTurno(HorarioJornada turno) {
         this.turno = turno;
+    }
+
+    public CambioTurno getCambioTurnoId() {
+        return cambioTurnoId;
+    }
+
+    public void setCambioTurnoId(CambioTurno cambioTurnoId) {
+        this.cambioTurnoId = cambioTurnoId;
     }
 
     @Override

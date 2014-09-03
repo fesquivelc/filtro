@@ -21,7 +21,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author RyuujiMD
+ * @author fesquivelc
  */
 @Entity
 @Table(name = "permiso_empleado")
@@ -35,12 +35,12 @@ public class PermisoEmpleado implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     private Integer id;
-    @JoinColumn(name = "empleado", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Empleado empleado;
     @JoinColumn(name = "permiso", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Permiso permiso;
+    @JoinColumn(name = "empleado", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Empleado empleado;
 
     public PermisoEmpleado() {
     }
@@ -57,20 +57,20 @@ public class PermisoEmpleado implements Serializable {
         this.id = id;
     }
 
-    public Empleado getEmpleado() {
-        return empleado;
-    }
-
-    public void setEmpleado(Empleado empleado) {
-        this.empleado = empleado;
-    }
-
     public Permiso getPermiso() {
         return permiso;
     }
 
     public void setPermiso(Permiso permiso) {
         this.permiso = permiso;
+    }
+
+    public Empleado getEmpleado() {
+        return empleado;
+    }
+
+    public void setEmpleado(Empleado empleado) {
+        this.empleado = empleado;
     }
 
     @Override

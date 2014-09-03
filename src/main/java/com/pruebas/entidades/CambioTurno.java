@@ -8,6 +8,7 @@ package com.pruebas.entidades;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,14 +19,16 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author RyuujiMD
+ * @author fesquivelc
  */
 @Entity
 @Table(name = "cambio_turno")
@@ -47,18 +50,20 @@ public class CambioTurno implements Serializable {
     @Column(name = "hora_pedido")
     @Temporal(TemporalType.TIME)
     private Date horaPedido;
-    @JoinColumn(name = "empleado1_id", referencedColumnName = "id")
-    @ManyToOne
-    private Empleado empleado1Id;
-    @JoinColumn(name = "empleado2_id", referencedColumnName = "id")
-    @ManyToOne
-    private Empleado empleado2Id;
-    @JoinColumn(name = "horario_jornada1_id", referencedColumnName = "id")
-    @ManyToOne
-    private HorarioJornada horarioJornada1Id;
+    @OneToMany(mappedBy = "cambioTurnoId")
+    private List<Registro> registroList;
     @JoinColumn(name = "horario_jornada2_id", referencedColumnName = "id")
     @ManyToOne
     private HorarioJornada horarioJornada2Id;
+    @JoinColumn(name = "horario_jornada1_id", referencedColumnName = "id")
+    @ManyToOne
+    private HorarioJornada horarioJornada1Id;
+    @JoinColumn(name = "empleado2_id", referencedColumnName = "id")
+    @ManyToOne
+    private Empleado empleado2Id;
+    @JoinColumn(name = "empleado1_id", referencedColumnName = "id")
+    @ManyToOne
+    private Empleado empleado1Id;
 
     public CambioTurno() {
     }
@@ -91,20 +96,21 @@ public class CambioTurno implements Serializable {
         this.horaPedido = horaPedido;
     }
 
-    public Empleado getEmpleado1Id() {
-        return empleado1Id;
+    @XmlTransient
+    public List<Registro> getRegistroList() {
+        return registroList;
     }
 
-    public void setEmpleado1Id(Empleado empleado1Id) {
-        this.empleado1Id = empleado1Id;
+    public void setRegistroList(List<Registro> registroList) {
+        this.registroList = registroList;
     }
 
-    public Empleado getEmpleado2Id() {
-        return empleado2Id;
+    public HorarioJornada getHorarioJornada2Id() {
+        return horarioJornada2Id;
     }
 
-    public void setEmpleado2Id(Empleado empleado2Id) {
-        this.empleado2Id = empleado2Id;
+    public void setHorarioJornada2Id(HorarioJornada horarioJornada2Id) {
+        this.horarioJornada2Id = horarioJornada2Id;
     }
 
     public HorarioJornada getHorarioJornada1Id() {
@@ -115,12 +121,20 @@ public class CambioTurno implements Serializable {
         this.horarioJornada1Id = horarioJornada1Id;
     }
 
-    public HorarioJornada getHorarioJornada2Id() {
-        return horarioJornada2Id;
+    public Empleado getEmpleado2Id() {
+        return empleado2Id;
     }
 
-    public void setHorarioJornada2Id(HorarioJornada horarioJornada2Id) {
-        this.horarioJornada2Id = horarioJornada2Id;
+    public void setEmpleado2Id(Empleado empleado2Id) {
+        this.empleado2Id = empleado2Id;
+    }
+
+    public Empleado getEmpleado1Id() {
+        return empleado1Id;
+    }
+
+    public void setEmpleado1Id(Empleado empleado1Id) {
+        this.empleado1Id = empleado1Id;
     }
 
     @Override

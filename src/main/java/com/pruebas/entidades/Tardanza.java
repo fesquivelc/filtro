@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author RyuujiMD
+ * @author fesquivelc
  */
 @Entity
 @XmlRootElement
@@ -51,12 +51,12 @@ public class Tardanza implements Serializable {
     private Date horaregistro;
     @Basic(optional = false)
     private int minutos;
-    @JoinColumn(name = "empleado_id", referencedColumnName = "id")
-    @ManyToOne
-    private Empleado empleadoId;
     @JoinColumn(name = "turno_id", referencedColumnName = "id")
     @ManyToOne
     private HorarioJornada turnoId;
+    @JoinColumn(name = "empleado_id", referencedColumnName = "id")
+    @ManyToOne
+    private Empleado empleadoId;
 
     public Tardanza() {
     }
@@ -113,20 +113,20 @@ public class Tardanza implements Serializable {
         this.minutos = minutos;
     }
 
-    public Empleado getEmpleadoId() {
-        return empleadoId;
-    }
-
-    public void setEmpleadoId(Empleado empleadoId) {
-        this.empleadoId = empleadoId;
-    }
-
     public HorarioJornada getTurnoId() {
         return turnoId;
     }
 
     public void setTurnoId(HorarioJornada turnoId) {
         this.turnoId = turnoId;
+    }
+
+    public Empleado getEmpleadoId() {
+        return empleadoId;
+    }
+
+    public void setEmpleadoId(Empleado empleadoId) {
+        this.empleadoId = empleadoId;
     }
 
     @Override

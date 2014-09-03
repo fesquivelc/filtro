@@ -485,9 +485,9 @@ public class CalculoAsistencia {
         Calendar calEntrada = Calendar.getInstance();
         Calendar calSalida = Calendar.getInstance();
         for (Permiso permiso : permisos) {
-            if (permiso.isPorFecha()) {
-                calEntrada.setTime(permiso.getfEntrada());
-                calSalida.setTime(permiso.getfSalida());
+            if (permiso.getPorFecha()) {
+                calEntrada.setTime(permiso.getFEntrada());
+                calSalida.setTime(permiso.getFSalida());
                 int diaEntrada = calEntrada.get(Calendar.DAY_OF_MONTH);
                 int diaSalida = calSalida.get(Calendar.DAY_OF_MONTH);
 
@@ -584,6 +584,7 @@ public class CalculoAsistencia {
             }
         }        
         
+        return null;
     }
 
 }

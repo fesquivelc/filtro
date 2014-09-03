@@ -16,6 +16,15 @@
     <class>com.pruebas.entidades.EmpleadoHorario</class>
     <class>com.pruebas.entidades.HorarioJornada</class>
     <class>com.pruebas.entidades.Feriado</class>
+    <class>com.pruebas.entidades2.Tardanza</class>
+    <class>com.pruebas.entidades2.Empleado</class>
+    <class>com.pruebas.entidades2.Jornada</class>
+    <class>com.pruebas.entidades2.Falta</class>
+    <class>com.pruebas.entidades2.Permiso</class>
+    <class>com.pruebas.entidades2.Feriado</class>
+    <class>com.pruebas.entidades2.Registro</class>
+    <class>com.pruebas.entidades2.Vista</class>
+    <class>com.pruebas.entidades2.Horario</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://127.0.0.1:5432/pruebabd"/>
       <property name="javax.persistence.jdbc.user" value="postgres"/>

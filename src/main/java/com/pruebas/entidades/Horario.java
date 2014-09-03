@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author RyuujiMD
+ * @author fesquivelc
  */
 @Entity
 @XmlRootElement
@@ -71,9 +71,9 @@ public class Horario implements Serializable {
     @Basic(optional = false)
     private boolean domingo;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "horario")
-    private List<HorarioJornada> horarioJornadaList;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "horario")
     private List<EmpleadoHorario> empleadoHorarioList;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "horario")
+    private List<HorarioJornada> horarioJornadaList;
 
     public Horario() {
     }
@@ -183,21 +183,21 @@ public class Horario implements Serializable {
     }
 
     @XmlTransient
-    public List<HorarioJornada> getHorarioJornadaList() {
-        return horarioJornadaList;
-    }
-
-    public void setHorarioJornadaList(List<HorarioJornada> horarioJornadaList) {
-        this.horarioJornadaList = horarioJornadaList;
-    }
-
-    @XmlTransient
     public List<EmpleadoHorario> getEmpleadoHorarioList() {
         return empleadoHorarioList;
     }
 
     public void setEmpleadoHorarioList(List<EmpleadoHorario> empleadoHorarioList) {
         this.empleadoHorarioList = empleadoHorarioList;
+    }
+
+    @XmlTransient
+    public List<HorarioJornada> getHorarioJornadaList() {
+        return horarioJornadaList;
+    }
+
+    public void setHorarioJornadaList(List<HorarioJornada> horarioJornadaList) {
+        this.horarioJornadaList = horarioJornadaList;
     }
 
     @Override

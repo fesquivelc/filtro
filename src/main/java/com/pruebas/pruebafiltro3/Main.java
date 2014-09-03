@@ -3,14 +3,19 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.pruebas.pruebafiltro3;
 
+import com.pruebas.algoritmo.AnalisisAsistencia;
 import com.pruebas.algoritmo.CalculoAsistencia;
 import com.pruebas.dao.DAO;
+import com.pruebas.entidades.HorarioJornada;
 import com.pruebas.entidades.Permiso;
+import com.pruebas.entidades.Vista;
+import java.sql.Date;
+import java.sql.Time;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,21 +25,25 @@ import java.util.logging.Logger;
  * @author RyuujiMD
  */
 public class Main {
+
     public static void main(String[] args) {
-        CalculoAsistencia filtro = new CalculoAsistencia();        
-//        filtro.realizarAnalisis();
-//        filtro.cargarFeriados(2014);
-//        
-//        if(filtro.isFeriado(4, 8)){
-//            LOG.info("ES FERIADO");
-//        }else{
-//            LOG.info("NO ES FERIADO");
-//        }
-        Calendar cal = Calendar.getInstance();
-        cal.set(2014, 7, 31);
-        
-        int diaSemana = cal.get(Calendar.DAY_OF_WEEK);
-        LOG.log(Level.INFO, "DIA DE LA SEMANA {0}",diaSemana);
+        AnalisisAsistencia aa = new AnalisisAsistencia();
+        DAO<Vista> vistaDAO = new DAO<>(Vista.class);
+        String dni = "18033904";
+
+        String jpql = "SELECT r FROM Vista r WHERE r.dni = :dni";
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("dni", Integer.parseInt(dni));
+
+        List<Vista> marcaciones = vistaDAO.buscar(jpql, parametros);
+
+        HorarioJornada hj = aa.turnosXEmpleado(dni, 8, 2014).get(0);
+
+        LOG.info(hj.toString());
+
+        Vista marcacion = aa.buscarVista(hj.getFecha(), hj.getJornada().getEntrada(), 30, 0, marcaciones);
+
+        LOG.log(Level.INFO, "EL MENOR PARA EL DNI: {0} ES: {1}", new String[]{dni, marcacion.getHora().toString()});
     }
     private static final Logger LOG = Logger.getLogger(Main.class.getName());
 }

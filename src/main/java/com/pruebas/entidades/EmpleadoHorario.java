@@ -21,7 +21,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author RyuujiMD
+ * @author fesquivelc
  */
 @Entity
 @Table(name = "empleado_horario")
@@ -35,12 +35,12 @@ public class EmpleadoHorario implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     private Integer id;
-    @JoinColumn(name = "empleado", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Empleado empleado;
     @JoinColumn(name = "horario", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Horario horario;
+    @JoinColumn(name = "empleado", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Empleado empleado;
 
     public EmpleadoHorario() {
     }
@@ -57,20 +57,20 @@ public class EmpleadoHorario implements Serializable {
         this.id = id;
     }
 
-    public Empleado getEmpleado() {
-        return empleado;
-    }
-
-    public void setEmpleado(Empleado empleado) {
-        this.empleado = empleado;
-    }
-
     public Horario getHorario() {
         return horario;
     }
 
     public void setHorario(Horario horario) {
         this.horario = horario;
+    }
+
+    public Empleado getEmpleado() {
+        return empleado;
+    }
+
+    public void setEmpleado(Empleado empleado) {
+        this.empleado = empleado;
     }
 
     @Override
