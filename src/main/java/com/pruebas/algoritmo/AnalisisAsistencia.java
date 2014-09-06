@@ -20,14 +20,11 @@ import com.pruebas.entidades.Tardanza;
 import com.pruebas.entidades.Vista;
 import java.sql.Date;
 import java.sql.Time;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -40,6 +37,10 @@ public class AnalisisAsistencia {
     private Date fechaInicio;
     private Time horaFin;
     private Date fechaFin;
+    private final int minutosMaxRegular = 5;
+    private final int minutosMaxTardanza = 15;  
+    private final int minutosAntesMarcacionEntrada = 30;
+    private final int minutosAntesMarcacionSalida = 0;
 
     DAO<Empleado> empleadoDAO = new DAO<>(Empleado.class);
     DAO<TCImportacion> tcDAO = new DAO<>(TCImportacion.class);
@@ -228,6 +229,19 @@ public class AnalisisAsistencia {
     private void analizarRegistroAsistencial(Empleado empleado, HorarioJornada turno, List<Vista> marcacionesXMes, List<Permiso> permisosXMes, List<CambioTurno> cambiosTurnoXMes) {
         CambioTurno cambioTurno = getCambioTurno(turno, cambiosTurnoXMes);
         Registro registro = new Registro();
+        Calendar cal = Calendar.getInstance();
+        
+        cal.setTime(turno.getJornada().getEntrada());
+        cal.add(Calendar.MINUTE, minutosMaxTardanza);
+        //HORA CON LA QUE SE VA A COMPARAR LA HORA DE INICIO
+        java.util.Date horaEntrada = cal.getTime();
+        
+        cal.setTime(turno.getJornada().getSalida());
+        cal.add(Calendar.MINUTE, minutosMaxTardanza);
+        //HORA CON LA QUE SE VA A COMPARAR LA HORA DE SALIDA
+        java.util.Date horaSalida = cal.getTime();
+        
+        
         if (cambioTurno != null) {
             //getCambioTurno nos indica cual es el cambio de turno correspondiente
             //al turno que se esta analizando en este mes
@@ -249,9 +263,9 @@ public class AnalisisAsistencia {
                      ANALIZAMOS Y SI ES FALTA, TARDANZA O ASISTENCIA REGULAR                    
                      */
 
-                    Vista vista = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), 30, 5, marcacionesXMes);
+                    Vista vista = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), minutosAntesMarcacionEntrada, minutosMaxRegular, marcacionesXMes);
                     if (vista == null) {
-                        vista = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), 30, 15, marcacionesXMes);
+                        vista = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), minutosAntesMarcacionEntrada, minutosMaxTardanza, marcacionesXMes);
                         if (vista == null) {
                             //SE TRATA DE UNA FALTA, ES INDIFERENTE A SI HAY HORA DE SALIDA
                             registro.setTipo("FT");
@@ -279,22 +293,21 @@ public class AnalisisAsistencia {
                     }
                 }
             } else {
-                Vista vistaEntrada = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), 30, 5, marcacionesXMes);
+                Vista vistaEntrada = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), minutosAntesMarcacionEntrada, minutosMaxRegular, marcacionesXMes);
 
-                java.util.Date fechaFin;
-                if (turno.getJornada().getTerminaDiaSiguiente()) {
-                    Calendar cal = Calendar.getInstance();
+                java.util.Date fechaFinal;
+                if (turno.getJornada().getTerminaDiaSiguiente()) {                    
                     cal.setTime(turno.getFecha());
                     cal.add(Calendar.DAY_OF_MONTH, 1);
-                    fechaFin = cal.getTime();
+                    fechaFinal = cal.getTime();
                 } else {
-                    fechaFin = turno.getFecha();
+                    fechaFinal = turno.getFecha();
                 }
 
-                Vista vistaSalida = buscarVista(fechaFin, turno.getJornada().getSalida(), 0, 40, marcacionesXMes);
+                Vista vistaSalida = buscarVista(fechaFinal, turno.getJornada().getSalida(), 0, 40, marcacionesXMes);
 
                 if (vistaEntrada == null) {
-                    vistaEntrada = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), 30, 15, marcacionesXMes);
+                    vistaEntrada = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), minutosAntesMarcacionEntrada, minutosMaxTardanza, marcacionesXMes);
                     if (vistaEntrada == null) {
                         //FALTA
                         registro.setTipo("FT");
