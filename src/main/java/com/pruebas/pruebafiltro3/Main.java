@@ -41,7 +41,7 @@ public class Main {
 
         LOG.info(hj.toString());
 
-        Vista marcacion = aa.buscarVista(hj.getFecha(), hj.getJornada().getEntrada(), 30, 0, marcaciones);
+        Vista marcacion = aa.filtrarMarcacion(hj.getFecha(), hj.getJornada().getEntrada(), 30, 0, marcaciones);
 
         LOG.log(Level.INFO, "EL MENOR PARA EL DNI: {0} ES: {1}", new String[]{dni, marcacion.getHora().toString()});
     }
