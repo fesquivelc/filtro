@@ -227,6 +227,7 @@ public class AnalisisAsistencia {
 
     private void analizarRegistroAsistencial(Empleado empleado, HorarioJornada turno, List<Vista> marcacionesXMes, List<Permiso> permisosXMes, List<CambioTurno> cambiosTurnoXMes) {
         CambioTurno cambioTurno = getCambioTurno(turno, cambiosTurnoXMes);
+        Registro registro = new Registro();
         if (cambioTurno != null) {
             //getCambioTurno nos indica cual es el cambio de turno correspondiente
             //al turno que se esta analizando en este mes
@@ -247,28 +248,79 @@ public class AnalisisAsistencia {
                      SOLO BUSCAMOS EL REGISTRO QUE CORRESPONDA A LA HORA DE ENTRADA 
                      ANALIZAMOS Y SI ES FALTA, TARDANZA O ASISTENCIA REGULAR                    
                      */
-                    Registro registro = new Registro();
+
                     Vista vista = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), 30, 5, marcacionesXMes);
                     if (vista == null) {
                         vista = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), 30, 15, marcacionesXMes);
                         if (vista == null) {
-                            //SE TRATA DE UNA FALTA
+                            //SE TRATA DE UNA FALTA, ES INDIFERENTE A SI HAY HORA DE SALIDA
                             registro.setTipo("FT");
+                            registro.setTurno(turno);
+                            registro.setEmpleadoId(empleado);
                         } else {
-                            //TARDANZA
+                            //TARDANZA DE UN TURNO NO TERMINADO ES SUSCEPTIBLE A CAMBIOS : TN
+                            registro.setTipo("TN");
+                            registro.setTurno(turno);
+                            registro.setEmpleadoId(empleado);
+                            registro.setBiometricoId(vista.getEquipoIp());
+                            registro.setFecha(vista.getFecha());
+                            registro.setHora(vista.getHora());
+                            registro.setEOS(true);
                         }
                     } else {
-                        //ASISTENCIA REGULAR
+                        //ASISTENCIA REGULAR PERO SIN TERMINAR: AN
+                        registro.setTipo("AN");
+                        registro.setTurno(turno);
+                        registro.setEmpleadoId(empleado);
+                        registro.setBiometricoId(vista.getEquipoIp());
+                        registro.setFecha(vista.getFecha());
+                        registro.setHora(vista.getHora());
+                        registro.setEOS(true);
+                    }
+                }
+            } else {
+                Vista vistaEntrada = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), 30, 5, marcacionesXMes);
+
+                java.util.Date fechaFin;
+                if (turno.getJornada().getTerminaDiaSiguiente()) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(turno.getFecha());
+                    cal.add(Calendar.DAY_OF_MONTH, 1);
+                    fechaFin = cal.getTime();
+                } else {
+                    fechaFin = turno.getFecha();
+                }
+
+                Vista vistaSalida = buscarVista(fechaFin, turno.getJornada().getSalida(), 0, 40, marcacionesXMes);
+
+                if (vistaEntrada == null) {
+                    vistaEntrada = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), 30, 15, marcacionesXMes);
+                    if (vistaEntrada == null) {
+                        //FALTA
+                        registro.setTipo("FT");
+                        registro.setTurno(turno);
+                        registro.setEmpleadoId(empleado);
+                        registro.setFecha(turno.getFecha());
+                    } else {
+                        //TARDANZA
+                        registro.setTipo("TT");
+                        registro.setTurno(turno);
+                        registro.setEmpleadoId(empleado);
+                        registro.setFecha(vistaEntrada.getHora());
+                        registro.setHora(vistaEntrada.getHora());
 
                     }
-
+                } else {
+                    //ASISTENCIA REGULAR
                 }
             }
         }
+
     }
 
     private void analizarRegistroAdministrativo(Empleado empleado, HorarioJornada turno, List<Vista> marcacionesXMes, List<Permiso> permisosXMes) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Calendar calendar = Calendar.getInstance();
+        
     }
 
     private CambioTurno getCambioTurno(HorarioJornada turno, List<CambioTurno> cambiosTurnoXMes) {

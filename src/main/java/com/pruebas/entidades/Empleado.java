@@ -54,6 +54,8 @@ public class Empleado implements Serializable {
     private List<Tardanza> tardanzaList;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "empleado")
     private List<PermisoEmpleado> permisoEmpleadoList;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "empleadoId")
+    private List<Registro> registroList;
     @OneToMany(mappedBy = "empleadoId")
     private List<Falta> faltaList;
     @OneToMany(mappedBy = "empleado2Id")
@@ -125,6 +127,15 @@ public class Empleado implements Serializable {
 
     public void setPermisoEmpleadoList(List<PermisoEmpleado> permisoEmpleadoList) {
         this.permisoEmpleadoList = permisoEmpleadoList;
+    }
+
+    @XmlTransient
+    public List<Registro> getRegistroList() {
+        return registroList;
+    }
+
+    public void setRegistroList(List<Registro> registroList) {
+        this.registroList = registroList;
     }
 
     @XmlTransient

@@ -35,7 +35,6 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Registro.findByFecha", query = "SELECT r FROM Registro r WHERE r.fecha = :fecha"),
     @NamedQuery(name = "Registro.findByHora", query = "SELECT r FROM Registro r WHERE r.hora = :hora"),
     @NamedQuery(name = "Registro.findByBiometricoId", query = "SELECT r FROM Registro r WHERE r.biometricoId = :biometricoId"),
-    @NamedQuery(name = "Registro.findByEmpleadoId", query = "SELECT r FROM Registro r WHERE r.empleadoId = :empleadoId"),
     @NamedQuery(name = "Registro.findByPermiso", query = "SELECT r FROM Registro r WHERE r.permiso = :permiso"),
     @NamedQuery(name = "Registro.findByEOS", query = "SELECT r FROM Registro r WHERE r.eOS = :eOS"),
     @NamedQuery(name = "Registro.findByTipo", query = "SELECT r FROM Registro r WHERE r.tipo = :tipo"),
@@ -56,9 +55,6 @@ public class Registro implements Serializable {
     @Column(name = "biometrico_id")
     private String biometricoId;
     @Basic(optional = false)
-    @Column(name = "empleado_id")
-    private int empleadoId;
-    @Basic(optional = false)
     private boolean permiso;
     @Column(name = "e_o_s")
     private Boolean eOS;
@@ -69,6 +65,9 @@ public class Registro implements Serializable {
     @JoinColumn(name = "turno", referencedColumnName = "id")
     @ManyToOne
     private HorarioJornada turno;
+    @JoinColumn(name = "empleado_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Empleado empleadoId;
     @JoinColumn(name = "cambio_turno_id", referencedColumnName = "id")
     @ManyToOne
     private CambioTurno cambioTurnoId;
@@ -80,12 +79,11 @@ public class Registro implements Serializable {
         this.id = id;
     }
 
-    public Registro(Integer id, Date fecha, Date hora, String biometricoId, int empleadoId, boolean permiso) {
+    public Registro(Integer id, Date fecha, Date hora, String biometricoId, boolean permiso) {
         this.id = id;
         this.fecha = fecha;
         this.hora = hora;
         this.biometricoId = biometricoId;
-        this.empleadoId = empleadoId;
         this.permiso = permiso;
     }
 
@@ -119,14 +117,6 @@ public class Registro implements Serializable {
 
     public void setBiometricoId(String biometricoId) {
         this.biometricoId = biometricoId;
-    }
-
-    public int getEmpleadoId() {
-        return empleadoId;
-    }
-
-    public void setEmpleadoId(int empleadoId) {
-        this.empleadoId = empleadoId;
     }
 
     public boolean getPermiso() {
@@ -167,6 +157,14 @@ public class Registro implements Serializable {
 
     public void setTurno(HorarioJornada turno) {
         this.turno = turno;
+    }
+
+    public Empleado getEmpleadoId() {
+        return empleadoId;
+    }
+
+    public void setEmpleadoId(Empleado empleadoId) {
+        this.empleadoId = empleadoId;
     }
 
     public CambioTurno getCambioTurnoId() {
