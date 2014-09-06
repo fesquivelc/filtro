@@ -37,10 +37,10 @@ public class AnalisisAsistencia {
     private Date fechaInicio;
     private Time horaFin;
     private Date fechaFin;
-    private final int minutosMaxRegular = 5;
-    private final int minutosMaxTardanza = 15;  
-    private final int minutosAntesMarcacionEntrada = 30;
-    private final int minutosAntesMarcacionSalida = 0;
+    private final int MINUTOS_MAX_REGULAR = 5;
+    private final int MINUTOS_MAX_TARDANZA = 15;
+    private final int MINUTOS_ANTES_MARCACION_ENTRADA = 30;
+    private final int MINUTOS_MAX_MARCACION_SALIDA = 0;
 
     DAO<Empleado> empleadoDAO = new DAO<>(Empleado.class);
     DAO<TCImportacion> tcDAO = new DAO<>(TCImportacion.class);
@@ -230,18 +230,17 @@ public class AnalisisAsistencia {
         CambioTurno cambioTurno = getCambioTurno(turno, cambiosTurnoXMes);
         Registro registro = new Registro();
         Calendar cal = Calendar.getInstance();
-        
+
         cal.setTime(turno.getJornada().getEntrada());
-        cal.add(Calendar.MINUTE, minutosMaxTardanza);
+        cal.add(Calendar.MINUTE, MINUTOS_MAX_TARDANZA);
         //HORA CON LA QUE SE VA A COMPARAR LA HORA DE INICIO
         java.util.Date horaEntrada = cal.getTime();
-        
+
         cal.setTime(turno.getJornada().getSalida());
-        cal.add(Calendar.MINUTE, minutosMaxTardanza);
+        cal.add(Calendar.MINUTE, MINUTOS_MAX_MARCACION_SALIDA);
         //HORA CON LA QUE SE VA A COMPARAR LA HORA DE SALIDA
         java.util.Date horaSalida = cal.getTime();
-        
-        
+
         if (cambioTurno != null) {
             //getCambioTurno nos indica cual es el cambio de turno correspondiente
             //al turno que se esta analizando en este mes
@@ -251,21 +250,23 @@ public class AnalisisAsistencia {
             //Analizamos los registros correspondientes al turno
             //Análisis de si existe un registro previo
             if (turno.getFecha().compareTo(fechaInicio) == 0) {
-                if (turno.getJornada().getSalida().compareTo(horaInicio) <= 0) {
-                    return;
-                } else if (turno.getJornada().getEntrada().compareTo(horaInicio) < 0) {
+                if (horaSalida.compareTo(horaInicio) < 0 && !turno.getJornada().getTerminaDiaSiguiente()) {
+                    //AQUI NO SUCEDE ABSOLUTAMENTE NADA YA QUE EL TURNO HA SIDO ANALIZADO 
+                } else if (horaEntrada.compareTo(horaInicio) < 0) {
+                    //SE ANALIZA LA HORA DE SALIDA NADA MAS BUSCANDO LA HORA DE ENTRADA DEL TURNO EN EL MES
 
                 }
-            } else if (turno.getFecha().compareTo(fechaFin) == 0) {
-                if ((turno.getJornada().getSalida().compareTo(horaFin) > 0 && !turno.getJornada().getTerminaDiaSiguiente()) || turno.getJornada().getTerminaDiaSiguiente()) {
+            }
+            if (turno.getFecha().compareTo(fechaFin) == 0) {
+                if (horaSalida.compareTo(horaFin) > 0 || turno.getJornada().getTerminaDiaSiguiente()) {
                     /*
                      SOLO BUSCAMOS EL REGISTRO QUE CORRESPONDA A LA HORA DE ENTRADA 
                      ANALIZAMOS Y SI ES FALTA, TARDANZA O ASISTENCIA REGULAR                    
                      */
 
-                    Vista vista = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), minutosAntesMarcacionEntrada, minutosMaxRegular, marcacionesXMes);
+                    Vista vista = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_ENTRADA, MINUTOS_MAX_REGULAR, marcacionesXMes);
                     if (vista == null) {
-                        vista = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), minutosAntesMarcacionEntrada, minutosMaxTardanza, marcacionesXMes);
+                        vista = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_ENTRADA, MINUTOS_MAX_TARDANZA, marcacionesXMes);
                         if (vista == null) {
                             //SE TRATA DE UNA FALTA, ES INDIFERENTE A SI HAY HORA DE SALIDA
                             registro.setTipo("FT");
@@ -293,10 +294,10 @@ public class AnalisisAsistencia {
                     }
                 }
             } else {
-                Vista vistaEntrada = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), minutosAntesMarcacionEntrada, minutosMaxRegular, marcacionesXMes);
+                Vista vistaEntrada = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_ENTRADA, MINUTOS_MAX_REGULAR, marcacionesXMes);
 
                 java.util.Date fechaFinal;
-                if (turno.getJornada().getTerminaDiaSiguiente()) {                    
+                if (turno.getJornada().getTerminaDiaSiguiente()) {
                     cal.setTime(turno.getFecha());
                     cal.add(Calendar.DAY_OF_MONTH, 1);
                     fechaFinal = cal.getTime();
@@ -304,10 +305,10 @@ public class AnalisisAsistencia {
                     fechaFinal = turno.getFecha();
                 }
 
-                Vista vistaSalida = buscarVista(fechaFinal, turno.getJornada().getSalida(), 0, 40, marcacionesXMes);
+                Vista vistaSalida = buscarVista(fechaFinal, turno.getJornada().getSalida(), 0, MINUTOS_MAX_MARCACION_SALIDA, marcacionesXMes);
 
                 if (vistaEntrada == null) {
-                    vistaEntrada = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), minutosAntesMarcacionEntrada, minutosMaxTardanza, marcacionesXMes);
+                    vistaEntrada = buscarVista(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_ENTRADA, MINUTOS_MAX_TARDANZA, marcacionesXMes);
                     if (vistaEntrada == null) {
                         //FALTA
                         registro.setTipo("FT");
@@ -333,7 +334,7 @@ public class AnalisisAsistencia {
 
     private void analizarRegistroAdministrativo(Empleado empleado, HorarioJornada turno, List<Vista> marcacionesXMes, List<Permiso> permisosXMes) {
         Calendar calendar = Calendar.getInstance();
-        
+
     }
 
     private CambioTurno getCambioTurno(HorarioJornada turno, List<CambioTurno> cambiosTurnoXMes) {
