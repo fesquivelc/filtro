@@ -286,8 +286,7 @@ public class AnalisisAsistencia {
                     }
 
                 }
-            }
-            if (turno.getFecha().compareTo(fechaFin) == 0) {
+            } else if (turno.getFecha().compareTo(fechaFin) == 0) {
                 if (horaSalida.compareTo(horaFin) > 0 || turno.getJornada().getTerminaDiaSiguiente()) {
                     /*
                      SOLO BUSCAMOS EL REGISTRO QUE CORRESPONDA A LA HORA DE ENTRADA 
@@ -302,7 +301,7 @@ public class AnalisisAsistencia {
                         registroEntrada.setTurno(turno);
                         registroEntrada.setEmpleadoId(empleado);
                     } else {
-                        //TARDANZA DE UN TURNO NO TERMINADO ES SUSCEPTIBLE A CAMBIOS : TN
+                        //TARDANZA DE UN TURNO NO TERMINADO ES SUSCEPTIBLE A CAMBIOS : TN O AN
 
                         registroEntrada.setTurno(turno);
                         registroEntrada.setEmpleadoId(empleado);
@@ -319,38 +318,35 @@ public class AnalisisAsistencia {
                     }
                 }
             } else {
-                vistaEntrada = filtrarMarcacion(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_ENTRADA, MINUTOS_MAX_MARCACION_REGULAR, marcacionesXMes);
+                vistaEntrada = obtenerMarcacion(turno, true, marcacionesXMes);
+                vistaSalida = obtenerMarcacion(turno, false, marcacionesXMes);
 
-                java.util.Date fechaFinal;
-                if (turno.getJornada().getTerminaDiaSiguiente()) {
-                    cal.setTime(turno.getFecha());
-                    cal.add(Calendar.DAY_OF_MONTH, 1);
-                    fechaFinal = cal.getTime();
+                if (vistaEntrada == null || vistaSalida == null) {
+                    //ES FALTA SI O SI
+                    registroEntrada.setTipo("FT");
+                    registroEntrada.setTurno(turno);
+                    registroEntrada.setEmpleadoId(empleado);
                 } else {
-                    fechaFinal = turno.getFecha();
-                }
-
-                vistaSalida = filtrarMarcacion(fechaFinal, turno.getJornada().getSalida(), MINUTOS_ANTES_MARCACION_SALIDA, MINUTOS_MAX_MARCACION_SALIDA, marcacionesXMes);
-
-                if (vistaEntrada == null) {
-                    vistaEntrada = filtrarMarcacion(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_ENTRADA, MINUTOS_MAX_MARCACION_TARDANZA, marcacionesXMes);
-                    if (vistaEntrada == null) {
-                        //FALTA
-                        registro.setTipo("FT");
-                        registro.setTurno(turno);
-                        registro.setEmpleadoId(empleado);
-                        registro.setFecha(turno.getFecha());
+                    //SE ANALIZA SI ES TARDANZA O FALTA 
+                    registroEntrada.setTurno(turno);
+                    registroEntrada.setEmpleadoId(empleado);
+                    registroEntrada.setBiometricoId(vistaEntrada.getEquipoIp());
+                    registroEntrada.setFecha(vistaEntrada.getFecha());
+                    registroEntrada.setHora(vistaEntrada.getHora());
+                    registroEntrada.setEOS(true);
+                    if (isTardanza(vistaEntrada.getHora(), turno.getJornada().getEntrada())) {
+                        registroEntrada.setTipo("TT");
                     } else {
-                        //TARDANZA
-                        registro.setTipo("TT");
-                        registro.setTurno(turno);
-                        registro.setEmpleadoId(empleado);
-                        registro.setFecha(vistaEntrada.getHora());
-                        registro.setHora(vistaEntrada.getHora());
-
+                        //ASISTENCIA REGULAR PERO SIN TERMINAR: AN
+                        registro.setTipo("AT");
                     }
-                } else {
-                    //ASISTENCIA REGULAR
+                    registroSalida.setEOS(false);
+                    registroSalida.setFecha(vistaSalida.getFecha());
+                    registroSalida.setHora(vistaSalida.getHora());
+                    registroSalida.setTipo("--");
+                    registroSalida.setBiometricoId(vistaSalida.getEquipoIp());
+                    registroSalida.setEmpleadoId(empleado);
+                    registroSalida.setTurno(turno);
                 }
             }
         }
