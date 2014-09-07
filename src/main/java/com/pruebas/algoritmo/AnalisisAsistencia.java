@@ -37,7 +37,7 @@ public class AnalisisAsistencia {
     private Date fechaInicio;
     private Time horaFin;
     private Date fechaFin;
-    
+
     //DATOS PRESENTES EN EL REGLAMENTO DEL HRC
     private final int MINUTOS_MAX_MARCACION_REGULAR = 5;
     private final int MINUTOS_MAX_MARCACION_TARDANZA = 15;
@@ -243,12 +243,12 @@ public class AnalisisAsistencia {
         cal.add(Calendar.MINUTE, MINUTOS_MAX_MARCACION_SALIDA);
         //HORA CON LA QUE SE VA A COMPARAR LA HORA DE SALIDA
         java.util.Date horaSalida = cal.getTime();
-        
+
         Vista vistaEntrada;
         Vista vistaSalida;
-        
-        Registro registroEntrada;
-        Registro registroSalida;
+
+        Registro registroEntrada = new Registro();
+        Registro registroSalida = new Registro();
 
         if (cambioTurno != null) {
             //getCambioTurno nos indica cual es el cambio de turno correspondiente
@@ -265,14 +265,14 @@ public class AnalisisAsistencia {
                 } else if (horaEntrada.compareTo(horaInicio) < 0) {
                     //SE ANALIZA LA HORA DE SALIDA NADA MAS BUSCANDO LA HORA DE ENTRADA DEL TURNO EN EL MES
                     registroEntrada = this.buscarRegistroXTurno(turno);
-                    
+
                     //EN CASO DE ENCONTRAR UNA FALTA NO DEBE SEGUIRSE ANALIZANDO
-                    if(!registroEntrada.getTipo().substring(0, 1).equals("F")){
-                        registroSalida = new Registro();                                                
+                    if (!registroEntrada.getTipo().substring(0, 1).equals("F")) {
+                        registroSalida = new Registro();
                         vistaSalida = obtenerMarcacion(turno, false, marcacionesXMes);
-                        if(vistaSalida == null){
+                        if (vistaSalida == null) {
                             registroEntrada.setTipo("FT");
-                        }else{
+                        } else {
                             registroEntrada.setTipo(registroEntrada.getTipo().replace("N", "T"));
                             registroSalida.setEOS(false);
                             registroSalida.setFecha(vistaSalida.getFecha());
@@ -282,11 +282,9 @@ public class AnalisisAsistencia {
                             registroSalida.setEmpleadoId(empleado);
                             registroSalida.setTurno(turno);
                         }
-                        
-                        
+
                     }
-                    
-                    
+
                 }
             }
             if (turno.getFecha().compareTo(fechaFin) == 0) {
@@ -296,33 +294,28 @@ public class AnalisisAsistencia {
                      ANALIZAMOS Y SI ES FALTA, TARDANZA O ASISTENCIA REGULAR                    
                      */
 
-                    Vista vista = filtrarMarcacion(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_ENTRADA, MINUTOS_MAX_MARCACION_REGULAR, marcacionesXMes);
-                    if (vista == null) {
-                        vista = filtrarMarcacion(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_ENTRADA, MINUTOS_MAX_MARCACION_TARDANZA, marcacionesXMes);
-                        if (vista == null) {
-                            //SE TRATA DE UNA FALTA, ES INDIFERENTE A SI HAY HORA DE SALIDA
-                            registro.setTipo("FT");
-                            registro.setTurno(turno);
-                            registro.setEmpleadoId(empleado);
-                        } else {
-                            //TARDANZA DE UN TURNO NO TERMINADO ES SUSCEPTIBLE A CAMBIOS : TN
-                            registro.setTipo("TN");
-                            registro.setTurno(turno);
-                            registro.setEmpleadoId(empleado);
-                            registro.setBiometricoId(vista.getEquipoIp());
-                            registro.setFecha(vista.getFecha());
-                            registro.setHora(vista.getHora());
-                            registro.setEOS(true);
-                        }
+                    vistaEntrada = this.obtenerMarcacion(turno, true, marcacionesXMes);
+
+                    if (vistaEntrada == null) {
+                        //SE TRATA DE UNA FALTA, ES INDIFERENTE A SI HAY HORA DE SALIDA
+                        registroEntrada.setTipo("FT");
+                        registroEntrada.setTurno(turno);
+                        registroEntrada.setEmpleadoId(empleado);
                     } else {
-                        //ASISTENCIA REGULAR PERO SIN TERMINAR: AN
-                        registro.setTipo("AN");
-                        registro.setTurno(turno);
-                        registro.setEmpleadoId(empleado);
-                        registro.setBiometricoId(vista.getEquipoIp());
-                        registro.setFecha(vista.getFecha());
-                        registro.setHora(vista.getHora());
-                        registro.setEOS(true);
+                        //TARDANZA DE UN TURNO NO TERMINADO ES SUSCEPTIBLE A CAMBIOS : TN
+
+                        registroEntrada.setTurno(turno);
+                        registroEntrada.setEmpleadoId(empleado);
+                        registroEntrada.setBiometricoId(vistaEntrada.getEquipoIp());
+                        registroEntrada.setFecha(vistaEntrada.getFecha());
+                        registroEntrada.setHora(vistaEntrada.getHora());
+                        registroEntrada.setEOS(true);
+                        if (isTardanza(vistaEntrada.getHora(), turno.getJornada().getEntrada())) {
+                            registroEntrada.setTipo("TN");
+                        } else {
+                            //ASISTENCIA REGULAR PERO SIN TERMINAR: AN
+                            registro.setTipo("AN");
+                        }
                     }
                 }
             } else {
@@ -432,32 +425,37 @@ public class AnalisisAsistencia {
     private static final Logger LOG = Logger.getLogger(AnalisisAsistencia.class.getName());
 
     private Vista obtenerMarcacion(HorarioJornada turno, boolean entrada_salida, List<Vista> marcacionesXMes) {
-        Vista vista = null;
-        
-        if(entrada_salida){
-            vista = this.filtrarMarcacion(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_ENTRADA, MINUTOS_MAX_MARCACION_REGULAR, marcacionesXMes);
-            if(vista == null){
-                vista = this.filtrarMarcacion(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_SALIDA, MINUTOS_MAX_MARCACION_SALIDA, marcacionesXMes);
-            }            
-        }else{
-            
+        Vista vista;
+
+        if (entrada_salida) {
+            vista = this.filtrarMarcacion(turno.getFecha(), turno.getJornada().getEntrada(), MINUTOS_ANTES_MARCACION_SALIDA, MINUTOS_MAX_MARCACION_SALIDA, marcacionesXMes);
+        } else {
+
             Calendar cal = Calendar.getInstance();
             java.util.Date fechaSalida;
-            if(turno.getJornada().getTerminaDiaSiguiente()){
+            if (turno.getJornada().getTerminaDiaSiguiente()) {
                 cal.setTime(turno.getFecha());
                 cal.add(Calendar.DAY_OF_MONTH, 1);
-                
+
                 fechaSalida = cal.getTime();
-            }else{
+            } else {
                 fechaSalida = turno.getFecha();
             }
-            
+
             vista = this.filtrarMarcacion(fechaSalida, turno.getJornada().getSalida(), MINUTOS_ANTES_MARCACION_SALIDA, MINUTOS_MAX_MARCACION_SALIDA, marcacionesXMes);
-            if(vista == null){
-                vista = this.filtrarMarcacion(fechaSalida, turno.getJornada().getSalida(), MINUTOS_ANTES_MARCACION_SALIDA, MINUTOS_MAX_MARCACION_SALIDA, marcacionesXMes);
-            }            
         }
         return vista;
+    }
+
+    private boolean isTardanza(java.util.Date horaMarcacion, java.util.Date horaEntrada) {
+        Calendar cal = Calendar.getInstance();
+
+        cal.setTime(horaEntrada);
+        cal.add(Calendar.MINUTE, MINUTOS_MAX_MARCACION_REGULAR);
+        java.util.Date horaRegular = cal.getTime();
+
+        return horaMarcacion.compareTo(horaRegular) >= 0;
+
     }
 //    
 //    private Registro crearRegistro(HorarioJornada turno, Vista vista){
