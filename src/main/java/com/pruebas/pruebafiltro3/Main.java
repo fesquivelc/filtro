@@ -6,7 +6,7 @@
 package com.pruebas.pruebafiltro3;
 
 import com.pruebas.algoritmo.AnalisisAsistencia;
-import com.pruebas.algoritmo.CalculoAsistencia;
+import com.pruebas.algoritmo.UtilitarioAsistencia;
 import com.pruebas.dao.DAO;
 import com.pruebas.entidades.HorarioJornada;
 import com.pruebas.entidades.Permiso;
@@ -27,7 +27,9 @@ import java.util.logging.Logger;
 public class Main {
 
     public static void main(String[] args) {
-        AnalisisAsistencia aa = new AnalisisAsistencia();
+        AnalisisAsistencia analisisAsistencia = new AnalisisAsistencia();
+        UtilitarioAsistencia utilitarioAsistencia = new UtilitarioAsistencia();                
+        
         DAO<Vista> vistaDAO = new DAO<>(Vista.class);
         String dni = "18033904";
 
@@ -37,11 +39,11 @@ public class Main {
 
         List<Vista> marcaciones = vistaDAO.buscar(jpql, parametros);
 
-        HorarioJornada hj = aa.turnosXEmpleado(dni, 8, 2014).get(0);
+        HorarioJornada hj = analisisAsistencia.turnosXEmpleado(dni, 8, 2014).get(0);
 
         LOG.info(hj.toString());
 
-        Vista marcacion = aa.filtrarMarcacion(hj.getFecha(), hj.getJornada().getEntrada(), 30, 0, marcaciones);
+        Vista marcacion = analisisAsistencia.filtrarMarcacion(hj.getFecha(), hj.getJornada().getEntrada(), 30, 0, marcaciones);
 
         LOG.log(Level.INFO, "EL MENOR PARA EL DNI: {0} ES: {1}", new String[]{dni, marcacion.getHora().toString()});
     }

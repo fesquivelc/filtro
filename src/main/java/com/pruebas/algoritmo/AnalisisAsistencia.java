@@ -18,8 +18,8 @@ import com.pruebas.entidades.Registro;
 import com.pruebas.entidades.TCImportacion;
 import com.pruebas.entidades.Tardanza;
 import com.pruebas.entidades.Vista;
-import java.sql.Date;
-import java.sql.Time;
+import java.util.Date;
+//import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -33,9 +33,9 @@ import java.util.logging.Logger;
  */
 public class AnalisisAsistencia {
 
-    private Time horaInicio;
+    private Date horaInicio;
     private Date fechaInicio;
-    private Time horaFin;
+    private Date horaFin;
     private Date fechaFin;
 
     //DATOS PRESENTES EN EL REGLAMENTO DEL HRC
@@ -115,7 +115,7 @@ public class AnalisisAsistencia {
         return permisos;
     }
 
-    public void iniciarAnalisis(Date fechaInicio, Time horaInicio, Date fechaFin, Time horaFin) {
+    public void iniciarAnalisis(Date fechaInicio, Date horaInicio, Date fechaFin, Date horaFin) {
         Calendar cal = Calendar.getInstance();
 
         if (fechaFin == null) {
@@ -123,7 +123,7 @@ public class AnalisisAsistencia {
         }
 
         if (horaFin == null) {
-            horaFin = new Time(cal.getTimeInMillis());
+            horaFin = new Date(cal.getTimeInMillis());
         }
 
         this.fechaInicio = fechaInicio;
@@ -260,8 +260,7 @@ public class AnalisisAsistencia {
             //Análisis de si existe un registro previo
             if (turno.getFecha().compareTo(fechaInicio) == 0) {
                 if (horaSalida.compareTo(horaInicio) < 0 && !turno.getJornada().getTerminaDiaSiguiente()) {
-                    //AQUI NO SUCEDE NADA YA QUE EL TURNO HA SIDO ANALIZADO 
-                    return;
+                    //AQUI NO SUCEDE NADA YA QUE EL TURNO HA SIDO ANALIZADO                     
                 } else if (horaEntrada.compareTo(horaInicio) < 0) {
                     //SE ANALIZA LA HORA DE SALIDA NADA MAS BUSCANDO LA HORA DE ENTRADA DEL TURNO EN EL MES
                     registroEntrada = this.buscarRegistroXTurno(turno);
